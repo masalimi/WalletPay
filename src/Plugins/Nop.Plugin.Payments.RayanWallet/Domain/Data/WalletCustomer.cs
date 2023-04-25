@@ -8,7 +8,6 @@ namespace Nop.Plugin.Payments.RayanWallet.Domain.Data
 {
     public class WalletCustomer : BaseEntity
     {
-        //public int Amount { get; set; }
         public string Username { get; set; }
         public int StoreId { get; set; }
         public string ReferenceAccountId { get; set; }
@@ -16,6 +15,6 @@ namespace Nop.Plugin.Payments.RayanWallet.Domain.Data
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
         public bool Active { get; set; }
-        //public bool IsChange { get; set; }
+        public virtual IList<WalletCustomerAmount> WalletCustomerAmounts { get; set; }
     }
 }

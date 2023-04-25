@@ -39,6 +39,5 @@ namespace Nop.Web.Models.Customer
         VendorInfo = 110,
         GdprTools = 120,
         CheckGiftCardBalance = 130
-        WalletHistory = 130
     }
 }

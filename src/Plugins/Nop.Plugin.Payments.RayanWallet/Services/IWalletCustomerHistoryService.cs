@@ -21,7 +21,7 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
 
         //IPagedList<WalletCustomerHistory> FindRecords(string name, string family, string cardNo, string cvv2,
         //    int pageIndex, int pageSize);
-        WalletCustomerHistory GetById(int id);
+        WalletCustomerHistory GetById(int? id);
         /// <summary>
         /// Get a shipping by weight record by identifier
         /// </summary>
@@ -39,8 +39,9 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
         /// </summary>
         /// <param name="WalletCustomerHistory">Shipping by weight record</param>
         void DeleteWalletCustomerHistory(WalletCustomerHistory WalletCustomerHistory);
-        IPagedList<WalletCustomerHistory> GetAll();
+        IPagedList<WalletCustomerHistory> GetAll(
+            int pageIndex = 0, int pageSize = int.MaxValue);
         string GetCustomerWalletRefNo(Order order);
-        WalletCustomerHistoryModel PrepareWalletList(int? pageNumber);
+        WalletCustomerHistoryModel PrepareWalletList(int pageNumber);
     }
 }

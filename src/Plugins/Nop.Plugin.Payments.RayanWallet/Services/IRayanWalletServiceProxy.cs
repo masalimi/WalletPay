@@ -9,11 +9,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Nop.Plugin.Payments.RayanWallet.Domain.Data;
 using Nop.Core.Domain.Orders;
+using Nop.Core;
+using Nop.Plugin.Payments.RayanWallet.Models;
 
 namespace Nop.Plugin.Payments.RayanWallet.Services
 {
     public interface IRayanWalletServiceProxy
     {
+
         //Task<HttpResponseMessage> PaymentRequestAsync(string requestUrl, PaymentRequest request);
         //Task<HttpResponseMessage> PaymentVerificationAsync(string requestUrl, PaymentVerificationRequest request);
 
@@ -30,6 +33,10 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
         WalletCustomer GetWalletCustomer(Customer customer);
         HttpResponseMessage UpdateWalletBalance(string referenceAccountId, int amount);
         List<WalletCustomerAmount> GetWalletCustomerAmount(int id);
-        //string GetCustomerWalletRefNo(Order order);
+        IPagedList<WalletCustomer> GatAllWalletCustomer(int pageIndex = 0, int pageSize = int.MaxValue);
+        WalletCustomer GetWalletCustomerById(int id);
+        void UpdateWalletCustomer(WalletCustomer walletCustomer);
+        void InsertWalletCustomer(WalletCustomerModel model);
+        bool CheckCustomerWallet(string userName);
     }
 }

@@ -62,7 +62,7 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
 
         }
 
-        public virtual IPagedList<WalletCustomerHistory> GetAll()
+        public virtual IPagedList<WalletCustomerHistory> GetAll(int page = 0, int pageSize = int.MaxValue)
         {
 
             var currentCustomer = _workContext.CurrentCustomer;
@@ -70,7 +70,7 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
                         join wcus in _walletCustomerRepository.Table on wus.WalletCustomerId equals wcus.Id
                         where wcus.Username == currentCustomer.Username
                         select wus;
-            var records = new PagedList<WalletCustomerHistory>(query, 0, int.MaxValue);
+            var records = new PagedList<WalletCustomerHistory>(query, page, pageSize = 10);
             return records;
         }
         public virtual WalletCustomerHistory GetById(int walletCustomerHistoryId)
@@ -105,37 +105,21 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
             return walletCustomerRepository.RefNo;
         }
 
-        public WalletCustomerHistoryModel PrepareWalletList(int? page)
+        public WalletCustomerHistoryModel PrepareWalletList(int page = 0)
         {
-          
-            //get reward points history
-            //var customer = _workContext.CurrentCustomer;
-            //var store = _storeContext.CurrentStore;
-            //var pageSize = _rewardPointsSettings.PageSize;
-            //var rewardPoints = _rewardPointService.GetRewardPointsHistory(customer.Id, store.Id, true, pageIndex: --page ?? 0, pageSize: pageSize);
-
-            var walletCustomerHistories = GetAll();
+            var walletCustomerHistories = GetAll(page, pageSize: 10);
             //prepare model
             var model = new WalletCustomerHistoryModel
             {
                 WalletHistory = walletCustomerHistories.Select(historyEntry =>
                 {
-                // var activatingDate = _dateTimeHelper.ConvertToUserTime(historyEntry.CreatedOnUtc, DateTimeKind.Utc);
-                return new WalletCustomerHistoryModel.WalletHistoryModel
+                    return new WalletCustomerHistoryModel.WalletHistoryModel
                     {
                         CreateDate = DateTimeExtentions.ToPersianDateTime(historyEntry.CreateDate),
                         Amount = (decimal)(historyEntry.Amount.HasValue ? historyEntry.Amount : 0),
                         OrderNo = historyEntry.RefNo,
                         TransferTypeWallet = historyEntry.TransactionType,
-
-                    //Points = historyEntry.Points,
-                    //PointsBalance = historyEntry.PointsBalance.HasValue ? historyEntry.PointsBalance.ToString()
-                    //    : string.Format(_localizationService.GetResource("RewardPoints.ActivatedLater"), activatingDate),
-                    //Message = historyEntry.Message,
-                    //CreatedOn = activatingDate,
-                    //EndDate = !historyEntry.EndDateUtc.HasValue ? null :
-                    //    (DateTime?)_dateTimeHelper.ConvertToUserTime(historyEntry.EndDateUtc.Value, DateTimeKind.Utc)
-                };
+                    };
                 }).ToList(),
 
                 PagerModel = new PagerModel
@@ -146,10 +130,14 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
                     ShowTotalSummary = true,
                     RouteActionName = "CustomerWalletCustomerHistoryPaged",
                     UseRouteLinks = true,
-                  //  RouteValues = new RewardPointsRouteValues { pageNumber = page ?? 0 }
+                    RouteValues = new WalletCustomerHistoryRouteValues { pageNumber = page }
                 }
             };
             return model;
+        }
+        public WalletCustomerHistory GetById(int? id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

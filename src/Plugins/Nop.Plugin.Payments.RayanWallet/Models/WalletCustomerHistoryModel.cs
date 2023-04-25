@@ -13,10 +13,7 @@ namespace Nop.Plugin.Payments.RayanWallet.Models
         }
         public IList<WalletHistoryModel> WalletHistory { get; set; }
         public PagerModel PagerModel { get; set; }
-        //public int RewardPointsBalance { get; set; }
-        //public string RewardPointsAmount { get; set; }
-        //public int MinimumRewardPointsBalance { get; set; }
-        //public string MinimumRewardPointsAmount { get; set; }
+        
 
         #region Nested classes
 

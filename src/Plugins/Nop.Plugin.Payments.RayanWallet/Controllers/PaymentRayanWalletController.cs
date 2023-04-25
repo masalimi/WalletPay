@@ -4,15 +4,13 @@ using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
-using Nop.Plugin.Payments.RayanWallet.Helper;
+using Nop.Plugin.Payments.RayanWallet.Domain.Data;
 using Nop.Plugin.Payments.RayanWallet.Models;
 using Nop.Plugin.Payments.RayanWallet.Services;
 using Nop.Services.Catalog;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
-//using Nop.Plugin.Payments.RayanWallet.Services;
 using Nop.Services.Logging;
-//using Nop.Web.Framework.Kendoui;
 using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Security;
@@ -21,9 +19,8 @@ using Nop.Web.Framework;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Models.Extensions;
 using Nop.Web.Framework.Mvc.Filters;
-//using Nop.Web.Areas.Admin.Factories;
-//using Nop.Web.Areas.Admin.Helpers;
-//using Nop.Plugin.Payments.RayanWallet.Domain.Services.Responses;
+using Nop.Web.Framework.Security;
+
 
 namespace Nop.Plugin.Payments.RayanWallet.Controllers
 {
@@ -165,37 +162,112 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
         #endregion
 
         #region WalletCustomerHistory
-
-        public virtual IActionResult WalletCustomerHistory(int? pageNumber)
+        [HttpsRequirement(SslRequirement.Yes)]
+        public virtual IActionResult WalletCustomerHistory(int pageNumber)
         {
             if (!_workContext.CurrentCustomer.IsRegistered())
                 return Challenge();
             var model = _walletCustomerHistory.PrepareWalletList(pageNumber);
             return View("~/Plugins/Payments.RayanWallet/Views/WalletCustomerHistory.cshtml", model);
-
-            ////var records = _walletCustomerHistory.GetAll();
-
-            ////var gridModel = new WalletCustomerHistoryListModel().PrepareToGrid(null, records, () =>
-            ////{
-            ////    return records.Select(record =>
-            ////    {
-            ////        var model = new WalletCustomerHistoryModel()
-            ////        {
-            ////            Id = record.Id,
-            ////            Amount = record.Amount ?? 0,
-            ////            CreateDate = DateTimeExtentions.ToPersianDateTime(record.CreateDate),
-            ////            UpdateDate = DateTimeExtentions.ToPersianDateTime(record.UpdateDate),
-            ////            OrderNo = _orderRepository.GetById(record.OrderId)?.CustomOrderNumber,
-            ////            TransferTypeWallet = record.TransactionType,
-            ////        };
-
-            ////        return model;
-            ////    });
-            ////});
-            ////return Json(gridModel);
-
-            //return View("~/Plugins/Payments.RayanWallet/Views/WalletCustomerHistory.cshtml",gridModel);
         }
         #endregion
+        [HttpPost]
+        public IActionResult WalletCustomerList(ConfigurationModel searchModel)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
+                return AccessDeniedDataTablesJson();
+
+            var records = _rayanWalletServicProxy.GatAllWalletCustomer();
+
+            var gridModel = new WalletCustomerModelList().PrepareToGrid(searchModel, records, () =>
+            {
+                return records.Select(record =>
+                {
+                    var model = new WalletCustomerModel()
+                    {
+                        Id = record.Id,
+                        Amount = record.WalletCustomerAmounts.Where(p => !p.IsApplied).Sum(p => p.Amount),
+                        Active = record.Active
+                    };
+
+                    return model;
+                });
+            });
+
+            return Json(gridModel);
+        }
+
+        public IActionResult AddWalletPopup()
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
+                return AccessDeniedView();
+            var model = new WalletCustomerModel();
+            return View("~/Plugins/Payments.RayanWallet/Views/AddWalletCustomerPopup.cshtml", model);
+        }
+
+        [HttpPost]
+        [AdminAntiForgery]
+        public IActionResult AddWalletPopup(WalletCustomerModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.AccessAdminPanel))
+                return AccessDeniedView();
+            if (CheckWalletCustomerIsValid(model.UserName))
+            {
+
+            }
+            else
+            {
+                _rayanWalletServicProxy.InsertWalletCustomer(model);
+
+                ViewBag.RefreshPage = true;
+            }
+            return View("~/Plugins/Shipping.FixedByWeightByTotal/Views/AddRateByWeightByTotalPopup.cshtml", model);
+        }
+
+        private bool CheckWalletCustomerIsValid(string userName)
+        {
+            return _rayanWalletServicProxy.CheckCustomerWallet(userName);
+        }
+
+        public IActionResult EditWalletPaymentUser(int id)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
+                return AccessDeniedView();
+
+            var sbw = _rayanWalletServicProxy.GetWalletCustomerById(id);
+            if (sbw == null)
+                //no record found with the specified id
+                return RedirectToAction("WalletCustomerList");
+
+            var model = new WalletCustomerModel()
+            {
+                Id = sbw.Id,
+                UserName = sbw.Username,
+                Active = sbw.Active,
+            };
+            return View("~/Plugins/Payments.RayanWallet/Views/EditPaymentWallet.cshtml", model);
+        }
+
+        [HttpPost]
+        [AdminAntiForgery]
+        public IActionResult EditWalletPaymentUser(WalletCustomerModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
+                return AccessDeniedView();
+
+            var sbw = _rayanWalletServicProxy.GetWalletCustomerById(model.Id);
+            if (sbw == null)
+                //no record found with the specified id
+                return RedirectToAction("Configure");
+
+            sbw.Active = model.Active;
+            sbw.Username = model.UserName;
+            _rayanWalletServicProxy.UpdateWalletCustomer(sbw);
+
+            ViewBag.RefreshPage = true;
+
+            return View("~/Plugins/Payments.RayanWallet/Views/WalletCustomerList.cshtml", model);
+        }
+
     }
 }

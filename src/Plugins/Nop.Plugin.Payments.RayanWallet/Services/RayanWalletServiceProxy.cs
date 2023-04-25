@@ -19,6 +19,8 @@ using Exception = System.Exception;
 using StackExchange.Profiling.Internal;
 using Nop.Core.Domain.Orders;
 using Newtonsoft.Json.Linq;
+using Nop.Core;
+using Nop.Plugin.Payments.RayanWallet.Models;
 
 namespace Nop.Plugin.Payments.RayanWallet.Services
 {
@@ -57,7 +59,7 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
                 {
                     if (string.IsNullOrEmpty(walletCustomer.ReferenceAccountId))
                     {
-                        var refrenceAccountId =  customer.Username + "_" + walletCustomer.SourceId + "_" + walletCustomer.StoreId;
+                        var refrenceAccountId = customer.Username + "_" + walletCustomer.SourceId + "_" + walletCustomer.StoreId;
                         #region InsertCreateAccountLog
                         var createAccountRequest = new WalletCreateAccountRequest()
                         {
@@ -475,10 +477,52 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
             }
         }
 
-        //private List<int> GetWalletCustomrAmount(int walletCustomerId)
-        //{
-        //    var walletCustomerAmountList = _wallletCustomerAmountReository.Table.Where(p => p.WalletCustomerId == walletCustomerId && p.Active);
-        //    return walletCustomerAmountList.Any() ? walletCustomerAmountList.Select(p => p.Amount).ToList() : null;
-        //}
+        #region WalletCustomer List/Add/Update
+        public IPagedList<WalletCustomer> GatAllWalletCustomer(int pageIndex = 0, int pageSize = int.MaxValue)
+        {
+            {
+                var query = from wc in _walletCustomerRepository.Table
+                            join c in _wallletCustomerAmountReository.Table on wc.Id equals c.WalletCustomerId
+                            select wc;
+                var records = new PagedList<WalletCustomer>(query, pageIndex, pageSize);
+                return records;
+            }
+        }
+
+        public WalletCustomer GetWalletCustomerById(int walletCustomerId)
+        {
+            if (walletCustomerId == 0)
+                return null;
+
+            return _walletCustomerRepository.GetById(walletCustomerId
+
+                );
+        }
+        public void UpdateWalletCustomer(WalletCustomer walletCustomer)
+        {
+            if (walletCustomer == null)
+                throw new ArgumentNullException(nameof(walletCustomer));
+
+            _walletCustomerRepository.Update(walletCustomer);
+        }
+
+        public void InsertWalletCustomer(WalletCustomerModel model)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CheckCustomerWallet(string userName)
+        {
+            try
+            {
+                return _walletCustomerRepository.Table.Any(p => p.Username == userName);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error on RayanWallet CheckCustomerWallet: {userName}", ex);
+                return false;
+            }
+        }
+        #endregion
     }
 }

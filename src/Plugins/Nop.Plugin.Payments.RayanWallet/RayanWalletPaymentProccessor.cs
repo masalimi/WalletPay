@@ -1,36 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Nop.Core;
+using Nop.Core.Data;
+using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
-using Nop.Services.Catalog;
-using Nop.Services.Configuration;
-using Nop.Services.Localization;
-using Nop.Services.Logging;
-using Nop.Services.Orders;
-using Nop.Services.Payments;
-using Nop.Services.Plugins;
 using Nop.Plugin.Payments.RayanWallet.Data;
+using Nop.Plugin.Payments.RayanWallet.Domain.Data;
 using Nop.Plugin.Payments.RayanWallet.Domain.Services;
 using Nop.Plugin.Payments.RayanWallet.Domain.Services.Requests;
-using Nop.Plugin.Payments.RayanWallet.Services;
 using Nop.Plugin.Payments.RayanWallet.Domain.Services.Responses;
-using Nop.Services.Common;
-using Nop.Services.Customers;
-using StackExchange.Profiling.Internal;
 using Nop.Plugin.Payments.RayanWallet.Helper;
-using Nop.Plugin.Payments.RayanWallet.Domain.Data;
-using Nop.Core.Domain.Customers;
-using Nop.Core.Data;
+using Nop.Plugin.Payments.RayanWallet.Services;
+using Nop.Services.Cms;
+using Nop.Services.Configuration;
+using Nop.Services.Customers;
+using Nop.Services.Localization;
+using Nop.Services.Logging;
+using Nop.Services.Payments;
+using Nop.Services.Plugins;
+using Nop.Web.Framework;
+using Nop.Web.Framework.Menu;
+using StackExchange.Profiling.Internal;
 
 namespace Nop.Plugin.Payments.RayanWallet
 {
-    public class RayanWalletPaymentProccessor : BasePlugin, IPaymentMethod
+    public class RayanWalletPaymentProccessor : BasePlugin, IPaymentMethod, IWidgetPlugin, IAdminMenuPlugin
     {
         private readonly ILocalizationService _localizationService;
         private readonly IRayanWalletServiceProxy _rayanWalletServicProxy;
@@ -101,6 +102,7 @@ namespace Nop.Plugin.Payments.RayanWallet
             }
         }
 
+        public bool HideInWidgetList => throw new NotImplementedException();
 
         public CancelRecurringPaymentResult CancelRecurringPayment(CancelRecurringPaymentRequest cancelPaymentRequest)
         {
@@ -904,6 +906,7 @@ namespace Nop.Plugin.Payments.RayanWallet
             _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.RayanWallet.TransferTypeWallet", " نوع تراکنش کیف پول");
             _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.RayanWallet.Amount", " مبلغ");
             _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.RayanWallet.CreateDate", " تاریخ ایجاد");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payment.RayanWallet.DescriptionList", "لیست کیف پول مشتریان");
 
 
             base.Install();
@@ -920,6 +923,7 @@ namespace Nop.Plugin.Payments.RayanWallet
             _localizationService.DeletePluginLocaleResource("Plugins.Payments.RayanWallet.TransferTypeWallet");
             _localizationService.DeletePluginLocaleResource("Plugins.Payments.RayanWallet.Amount");
             _localizationService.DeletePluginLocaleResource("Plugins.Payments.RayanWallet.CreateDate");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.RayanWallet.DescriptionList");
             base.Uninstall();
         }
 
@@ -931,6 +935,36 @@ namespace Nop.Plugin.Payments.RayanWallet
         public string GetPublicViewComponentName()
         {
             throw new NotImplementedException();
+        }
+
+        public IList<string> GetWidgetZones()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetWidgetViewComponentName(string widgetZone)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ManageSiteMap(SiteMapNode rootNode)
+        {
+            var menuItem = new SiteMapNode()
+            {
+                SystemName = "CustomersWallet",
+                Title = "Payments.RayanWallet",
+                ControllerName = "PaymentRayanWallet",
+                ActionName = "List",
+                IconClass = "far fa-dot-circle",
+                Visible = true,
+                RouteValues = new RouteValueDictionary() { { "area", AreaNames.Admin } },
+            };
+            var pluginNode = rootNode.ChildNodes.FirstOrDefault(x => x.SystemName == "CustomersWallet");
+            if (pluginNode != null)
+                pluginNode.ChildNodes.Add(menuItem);
+            else
+                rootNode.ChildNodes.Add(menuItem);
+            //return Task.CompletedTask;
         }
     }
 }

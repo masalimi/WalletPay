@@ -12,5 +12,7 @@ namespace Nop.Plugin.Payments.RayanWallet.Domain.Data
         public DateTime UpdateDateTime { get; set; }
         public decimal Amount { get; set; }
         public bool IsApplied { get; set; }
+        public virtual WalletCustomer WalletCustomer { get; set; }
+
     }
 }
