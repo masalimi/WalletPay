@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Payment methods",
+  "FriendlyName": "Parsian",
+  "SystemName": "Payments.Parsian.tit",
+  "Version": "1.4",
+  "SupportedVersions": [ "4.20" ],
+  "Author": "Maryam Salimi",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Payments.Parsian.tit.dll",
+  "Description": "This plugin allows paying with Parsian Gateway"
+}

@@ -221,8 +221,7 @@ namespace Nop.Plugin.Payments.Wallet.Controllers
                 return AccessDeniedView();
 
             var model = new WalletUserDataModel();
-
-            return View("~/Plugins/Payments.Wallet/Views/WalletUserDataInfo.cshtml", model);
+            return View("~/Plugins/Payments.Wallet/Views/AddWalletCustomerPopup.cshtml", model);
         }
 
         public IActionResult WalletUserData()

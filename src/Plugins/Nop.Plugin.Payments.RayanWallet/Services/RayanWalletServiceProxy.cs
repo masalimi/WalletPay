@@ -508,7 +508,25 @@ namespace Nop.Plugin.Payments.RayanWallet.Services
 
         public void InsertWalletCustomer(WalletCustomerModel model)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var wcm = new List<WalletCustomerAmount>();
+                wcm.Add(new WalletCustomerAmount { Amount = model.Amount });
+                var walletCustomer = new WalletCustomer
+                {
+                    Active = model.Active,
+                    SourceId = model.SourceId,
+                    Username = model.UserName,
+                    CreateDate = DateTime.UtcNow,
+                    WalletCustomerAmounts = wcm,
+                };
+                _walletCustomerRepository.Insert(walletCustomer);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error on RayanWallet InsertWalletCustomer: {model}", ex);
+            }
         }
 
         public bool CheckCustomerWallet(string userName)

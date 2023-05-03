@@ -31,7 +31,7 @@ using StackExchange.Profiling.Internal;
 
 namespace Nop.Plugin.Payments.RayanWallet
 {
-    public class RayanWalletPaymentProccessor : BasePlugin, IPaymentMethod, IWidgetPlugin, IAdminMenuPlugin
+    public class RayanWalletPaymentProccessor : BasePlugin, IPaymentMethod, IAdminMenuPlugin
     {
         private readonly ILocalizationService _localizationService;
         private readonly IRayanWalletServiceProxy _rayanWalletServicProxy;
@@ -931,40 +931,29 @@ namespace Nop.Plugin.Payments.RayanWallet
         {
             return $"{_webHelper.GetStoreLocation()}Admin/PaymentRayanWallet/Configure";
         }
-
-        public string GetPublicViewComponentName()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IList<string> GetWidgetZones()
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetWidgetViewComponentName(string widgetZone)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ManageSiteMap(SiteMapNode rootNode)
+        void IAdminMenuPlugin.ManageSiteMap(SiteMapNode rootNode)
         {
             var menuItem = new SiteMapNode()
             {
-                SystemName = "CustomersWallet",
-                Title = "Payments.RayanWallet",
+                SystemName = "Customers",
+                Title = "CustomerWallet",
                 ControllerName = "PaymentRayanWallet",
-                ActionName = "List",
+                ActionName = "WalletCustomerList",
                 IconClass = "far fa-dot-circle",
                 Visible = true,
                 RouteValues = new RouteValueDictionary() { { "area", AreaNames.Admin } },
             };
-            var pluginNode = rootNode.ChildNodes.FirstOrDefault(x => x.SystemName == "CustomersWallet");
+            var pluginNode = rootNode.ChildNodes.FirstOrDefault(x => x.SystemName == "Customers");
             if (pluginNode != null)
                 pluginNode.ChildNodes.Add(menuItem);
             else
                 rootNode.ChildNodes.Add(menuItem);
-            //return Task.CompletedTask;
+
+        }
+
+        public string GetPublicViewComponentName()
+        {
+            throw new NotImplementedException();
         }
     }
 }

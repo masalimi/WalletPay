@@ -33,6 +33,10 @@ namespace Nop.Plugin.Payments.RayanWallet.Models
         public bool Active { get; set; }
         public bool Active_OverrideForStore { get; set; }
 
+
+        [NopResourceDisplayName("Plugins.Payments.RayanWallet.SourceId")]
+        public int SourceId { get; set; }
+        public bool SourceId_OverrideForStore { get; set; }
     }
 }
 public class WalletCustomerModelList : BasePagedListModel<WalletCustomerModel>

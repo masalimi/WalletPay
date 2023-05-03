@@ -18,12 +18,15 @@ using Nop.Services.Stores;
 using Nop.Web.Framework;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Models.Extensions;
+using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
 using Nop.Web.Framework.Security;
 
 
 namespace Nop.Plugin.Payments.RayanWallet.Controllers
 {
+    [AuthorizeAdmin]
+    [Area(AreaNames.Admin)]
     public class PaymentRayanWalletController : BasePaymentController
     {
 
@@ -162,20 +165,21 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
         #endregion
 
         #region WalletCustomerHistory
-        [HttpsRequirement(SslRequirement.Yes)]
-        public virtual IActionResult WalletCustomerHistory(int pageNumber)
-        {
-            if (!_workContext.CurrentCustomer.IsRegistered())
-                return Challenge();
-            var model = _walletCustomerHistory.PrepareWalletList(pageNumber);
-            return View("~/Plugins/Payments.RayanWallet/Views/WalletCustomerHistory.cshtml", model);
-        }
+        //[HttpsRequirement(SslRequirement.Yes)]
+        //public virtual IActionResult WalletCustomerHistory(int pageNumber)
+        //{
+        //    if (!_workContext.CurrentCustomer.IsRegistered())
+        //        return Challenge();
+        //    var model = _walletCustomerHistory.PrepareWalletList(pageNumber);
+        //    return View("~/Plugins/Payments.RayanWallet/Views/WalletCustomerHistory.cshtml", model);
+        //}
         #endregion
         [HttpPost]
+        [AdminAntiForgery]
         public IActionResult WalletCustomerList(ConfigurationModel searchModel)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
-                return AccessDeniedDataTablesJson();
+            //if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
+            //    return AccessDeniedDataTablesJson();
 
             var records = _rayanWalletServicProxy.GatAllWalletCustomer();
 
@@ -187,7 +191,9 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
                     {
                         Id = record.Id,
                         Amount = record.WalletCustomerAmounts.Where(p => !p.IsApplied).Sum(p => p.Amount),
-                        Active = record.Active
+                        Active = record.Active,
+                        UserName = record.Username,
+                        SourceId = record.SourceId
                     };
 
                     return model;
@@ -197,7 +203,7 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
             return Json(gridModel);
         }
 
-        public IActionResult AddWalletPopup()
+        public IActionResult AddWalletCustomerPopup()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -207,13 +213,13 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
 
         [HttpPost]
         [AdminAntiForgery]
-        public IActionResult AddWalletPopup(WalletCustomerModel model)
+        public IActionResult AddWalletCustomerPopup(WalletCustomerModel model)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.AccessAdminPanel))
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
             if (CheckWalletCustomerIsValid(model.UserName))
             {
-
+                return Content("Access denied");
             }
             else
             {
@@ -221,7 +227,7 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
 
                 ViewBag.RefreshPage = true;
             }
-            return View("~/Plugins/Shipping.FixedByWeightByTotal/Views/AddRateByWeightByTotalPopup.cshtml", model);
+            return View("~/Plugins/Payments.RayanWallet/Views/AddWalletCustomerPopup.cshtml", model);
         }
 
         private bool CheckWalletCustomerIsValid(string userName)
@@ -238,14 +244,20 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
             if (sbw == null)
                 //no record found with the specified id
                 return RedirectToAction("WalletCustomerList");
-
-            var model = new WalletCustomerModel()
+            else
             {
-                Id = sbw.Id,
-                UserName = sbw.Username,
-                Active = sbw.Active,
-            };
-            return View("~/Plugins/Payments.RayanWallet/Views/EditPaymentWallet.cshtml", model);
+
+                var model = new WalletCustomerModel()
+                {
+                    Id = sbw.Id,
+                    UserName = sbw.Username,
+                    Active = sbw.Active,
+                    Amount = sbw.WalletCustomerAmounts.Where(p => !p.IsApplied).Sum(p => p.Amount),
+                    SourceId = sbw.SourceId
+                };
+                return View("~/Plugins/Payments.RayanWallet/Views/EditWalletCustomerPopup.cshtml", model);
+
+            }
         }
 
         [HttpPost]
@@ -262,11 +274,12 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
 
             sbw.Active = model.Active;
             sbw.Username = model.UserName;
+            sbw.SourceId = model.SourceId;
             _rayanWalletServicProxy.UpdateWalletCustomer(sbw);
 
             ViewBag.RefreshPage = true;
 
-            return View("~/Plugins/Payments.RayanWallet/Views/WalletCustomerList.cshtml", model);
+            return View("~/Plugins/Payments.RayanWallet/Views/EditWalletCustomerPopup.cshtml", model);
         }
 
     }

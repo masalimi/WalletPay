@@ -1,88 +1,91 @@
-﻿@model Nop.Plugin.Payments.RayanWallet.Models.WalletCustomerHistoryModel
-@using Nop.Web.Extensions
-
-@{ Layout = "_ColumnsTwo";
-
-    //title
-    Html.AddTitleParts(T("PageTitle.Account").Text);
-    //page class
-    Html.AppendPageCssClassParts("html-account-page");
-    Html.AppendPageCssClassParts("html-reward-points-page"); }
-@section left
-{
-    @*  @await Component.InvokeAsync("CustomerNavigation", new { selectedTabId = CustomerNavigationEnum.RewardPoints })*@
-}
-<div class="page account-page reward-points-page">
-    <div class="page-title">
-        <h1>@T("Account.MyAccount") - @T("Account.WalletHistory")</h1>
-    </div>
-    <div class="page-body">
-        <div class="reward-points-overview">
-            <div class="section reward-points-history">
-                <div class="title">
-                    <strong>@T("Wallet.History")</strong>
-                </div>
-                @if (Model.WalletHistory.Count > 0)
-                {
-    <div class="table-wrapper">
-        <table class="data-table">
-            <colgroup>
-                <col width="20%" />
-                <col width="10%" />
-                <col width="10%" />
-                <col />
-                <col width="20%" />
-            </colgroup>
-            <thead>
-                <tr>
-                    <th class="title">
-                        @T("Plugins.Payments.RayanWallet.OrderNo")
-                    </th>
-                    <th class="">
-                        @T("Plugins.Payments.RayanWallet.TransferTypeWallet")
-                    </th>
-                    <th class="">
-                        @T("Plugins.Payments.RayanWallet.Amount")
-                    </th>
-                    <th class="date">
-                        @T("Plugins.Payments.RayanWallet.CreateDate")
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (var i = 0; i < Model.WalletHistory.Count; i++)
-                {
-                    var item = Model.WalletHistory[i];
-    <tr @(i % 2 == 0 ? Html.Raw(" class=\"odd\"") : Html.Raw(" class=\"even\""))>
-    <td class="date">
-        @item.OrderNo
-    </td>
-    <td class="points">
-        @item.TransferTypeWallet
-    </td>
-    <td class="points-balance">
-        @item.Amount
-    </td>
-    <td class="message">
-        @item.CreateDate
-    </td>
-
-</tr>                }
-            </tbody>
-        </table>
-    </div> var pager = Html.Pager(Model.PagerModel);
-    if (!string.IsNullOrEmpty(pager.ToHtmlString()))
-    {
-<div class="pager">
-    @pager
-</div> }
-}
-else
-{
-<div class="no-data">
-    @T("RewardPoints.NoHistory")
-</div>      }
+﻿@using Nop.Core
+@using Nop.Plugin.Payments.RayanWallet.Models
+@using Nop.Web.Framework.Models.DataTables
+@inject Nop.Core.Domain.Common.AdminAreaSettings adminAreaSettings
+@inject Nop.Services.Stores.IStoreService storeService
+@inject Nop.Services.Common.IGenericAttributeService genericAttributeService
+@inject IWorkContext workContext
+@{ Layout = "_ConfigurePlugin"; }
+<form asp-controller="PaymentRayanWallet" asp-action="WalletCustomerList" method="post" id="wallet-list-form">
+    <div class="panel-group advanced-setting">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <p>
+                    <b>@T("Plugins.Payment.RayanWallet.DescriptionList")</b>
+                </p>
+                @await Html.PartialAsync("Table", new DataTablesModel
+           {
+               Name = "wallet-list-grid",
+               UrlRead = new DataUrl("WalletCustomerList", "PaymentRayanWallet", null),
+               //UrlDelete = new DataUrl("DeleteWallet", "PaymentRayanWallet", null),
+               Length = Model.PageSize,
+               LengthMenu = Model.AvailablePageSizes,
+               ColumnCollection = new List<ColumnProperty>
+                           {
+                           new ColumnProperty(nameof(WalletCustomerModel.UserName))
+                           {
+                               Title = T("Plugins.Payments.RayanWallet.UserName").Text,
+                               Width = "200"
+                           },
+                           new ColumnProperty(nameof(WalletCustomerModel.Amount))
+                           {
+                               Title = T("Plugins.Payments.RayanWallet.Amount").Text,
+                               Width = "100"
+                           },
+                           new ColumnProperty(nameof(WalletCustomerModel.SourceId))
+                           {
+                               Title = T("Plugins.Payments.RayanWallet.SourceId").Text,
+                               Width = "100"
+                           },
+                            new ColumnProperty(nameof(WalletCustomerModel.Active))
+                           {
+                               Title = T("Plugins.Payments.RayanWallet.Active").Text,
+                               Width = "100"
+                           },
+                           new ColumnProperty(nameof(WalletCustomerModel.Id))
+                           {
+                               Title = T("Admin.Common.Edit").Text,
+                               ClassName = NopColumnClassDefaults.Button,
+                               Width = "100",
+                               Render = new RenderCustom("renderColumnEdit")
+                           },
+                           //new ColumnProperty(nameof(WalletCustomerModel.Id))
+                           //{
+                           //    Title = T("Admin.Common.Delete").Text,
+                           //    ClassName = NopColumnClassDefaults.Button,
+                           //    Render = new RenderButtonRemove(T("Admin.Common.Delete").Text),
+                           //    Width = "100"
+                           //}
+                       }
+           })
+            </div>
+            <div class="panel-footer">
+                <button type="submit" id="btnAddNewRecord" class="btn btn-primary"
+                        onclick="javascript:OpenWindow('@(Url.Action("AddWalletCustomerPopup", "PaymentRayanWallet", new {btnId = "btnRefresh", formId = "wallet-list-form"}))', 800, 800, true);return false;">
+                    @T("Admin.Common.AddNew")
+                </button>
+                <input type="submit" id="btnRefresh" class="btn btn-default" style="display: none" />
             </div>
         </div>
     </div>
-</div>
+    <script>
+        $(document)
+            .ready(function () {
+                $('#btnRefresh')
+                    .click(function () {
+                        //refresh grid
+                        updateTable('#wallet-list-grid');
+
+                        //return false to don't reload a page
+                        return false;
+                    });
+            });
+
+    function renderColumnEdit(data, type, row, meta) {
+        return '<button onclick=\"javascript:OpenWindow(\'@Url.Action("EditWalletPaymentUser", "PaymentWallet")?id=' +
+            data +
+            '&btnId=btnRefresh&formId=wallet-list-form\', 800, 800, true); return false;\" class="btn btn-default"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</button>';
+    }
+    </script>
+
+</form>

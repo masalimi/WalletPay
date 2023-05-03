@@ -1,0 +1,28 @@
+﻿{
+  "InstalledPluginNames": [
+    "CurrencyExchange.ECB",
+    "Misc.SendinBlue",
+    "Payments.Manual",
+    "Payments.PayPalStandard",
+    "Payments.Qualpay",
+    "Payments.RayanPay",
+    "Payments.Square",
+    "Pickup.PickupInStore",
+    "Shipping.FixedByWeightByTotal",
+    "Shipping.UPS",
+    "Tax.Avalara",
+    "Tax.FixedOrByCountryStateZip",
+    "Widgets.GoogleAnalytics",
+    "Widgets.NivoSlider",
+    "ExternalAuth.Facebook",
+    "Payments.RayanWallet"
+  ],
+  "PluginNamesToUninstall": [],
+  "PluginNamesToDelete": [],
+  "PluginNamesToInstall": [
+    {
+      "Item1": "Payments.Wallet",
+      "Item2": null
+    }
+  ]
+}
