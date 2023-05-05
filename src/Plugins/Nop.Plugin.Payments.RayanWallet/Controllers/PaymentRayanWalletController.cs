@@ -181,8 +181,8 @@ namespace Nop.Plugin.Payments.RayanWallet.Controllers
             //if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
             //    return AccessDeniedDataTablesJson();
 
-            var records = _rayanWalletServicProxy.GatAllWalletCustomer();
-
+            var records = _rayanWalletServicProxy.GatAllWalletCustomer(searchModel.Page - 1, searchModel.PageSize);
+            //var data = new PagedList<WalletCustomerModel>(sbwModel.AsQueryable(), searchModel.Page - 1, searchModel.PageSize);
             var gridModel = new WalletCustomerModelList().PrepareToGrid(searchModel, records, () =>
             {
                 return records.Select(record =>
